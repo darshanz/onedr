@@ -1,5 +1,5 @@
-# onedr
-Small python library for drone control using MAVLINK.
+# onedr 
+onedr is a Python library for drone control using MAVLINK. 🎮
 
 
 ### Installation
