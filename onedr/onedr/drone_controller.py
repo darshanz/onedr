@@ -31,3 +31,25 @@ class DroneController:
             self.logger.info("Connection Failed----")
             self.connected = False
             return None
+        
+    def set_mode(self):
+        pass
+    
+    def arm(self):
+        pass
+
+    def disarm(self):
+        pass 
+
+    def take_off(self, altitude=10):
+        pass
+
+    def land(self):
+        pass
+
+    def get_position(self):
+        pass
+
+    
+
+    
