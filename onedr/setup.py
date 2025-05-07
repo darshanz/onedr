@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='onedr',
-    version='0.1.0',
+    version='0.1.0-alpha1',
     description='onedr is a python library for drone control using MAVLink.',
     url='https://github.com/darshanz/onedr',
     author='Sudarshan Pant',
