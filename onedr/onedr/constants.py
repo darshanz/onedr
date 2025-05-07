@@ -1,30 +1,14 @@
-# ArduPilot modes only for now
-FLIGHT_MODE = {
-            0: "MANUAL",
-            2: "STABILIZE",
-            3: "GUIDED",
-            4: "AUTO",
-            5: "RTL",
-            6: "LOITER",
-            7: "LAND",
-            8: "ALT_HOLD",
-            9: "ACRO",
-            10: "FBWA",
-            11: "FBWB",
-            12: "CRUISE",
-            13: "FBW A",
-            14: "CIRCLE",
-            15: "POSITION",
-            16: "BRAKE",
-            17: "THROW",
-            18: "AVOID_ADSB",
-            19: "GUIDED_NOGPS",
-            20: "SMART_RTL",
-            21: "FLOWHOLD",
-            22: "FOLLOW",
-            23: "SPRAY",
-            24: "SCRIPT",
-            25: "MOUNT",
-            26: "REPOSITION",
-            27: "THERMAL"
-}
+# Some ArduPilot modes only for now
+from enum import Enum
+
+class Mode(Enum):
+    STABILIZE = 0
+    GUIDED = 4
+    LOITER = 5
+    RTL = 6
+    AUTO = 3
+    LAND = 9
+
+class ArmState():
+    DISARM = 0
+    ARM = 1
