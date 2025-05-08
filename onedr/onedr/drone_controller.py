@@ -125,7 +125,6 @@ class DroneController:
         self.logger.error(f"Failed to change mode to {mode.name}")
         return False
 
-    
     def set_guided(self):
         return self.set_mode(Mode.GUIDED)
     
@@ -183,10 +182,47 @@ class DroneController:
         )
 
     def land(self):
-        pass
+        """Command the drone to land."""
+        self.logger.info("Landing...")
+        return self.set_mode("LAND")
+    
+    def return_to_launch(self):
+        """Command the drone to return to the launch position."""
+        self.logger.info("Returning to launch position...")
+        return self.set_mode("RTL")
 
     def get_position(self):
-        pass
+        """
+        Get the current position of the drone.
+        
+        Returns:
+            tuple: (latitude, longitude, altitude) or None if not available
+        """
+        if not self.connected:
+            self.logger.info("Not connected to a drone.")
+            return None
+        
+        # Request position information
+        self.connection.mav.request_data_stream_send(
+            self.target_system,
+            self.target_component,
+            mavutil.mavlink.MAV_DATA_STREAM_POSITION,
+            1,  # rate in Hz
+            1   # start/stop
+        )
+        
+        # Try to get a GLOBAL_POSITION_INT message
+        start = time.time()
+        while time.time() - start < 3:
+            msg = self.connection.recv_match(type='GLOBAL_POSITION_INT', blocking=True, timeout=1)
+            if msg:
+                lat = msg.lat / 1e7  # Convert from int to degrees
+                lon = msg.lon / 1e7
+                alt = msg.relative_alt / 1000  # Convert from mm to meters
+                return (lat, lon, alt)
+        
+        self.logger.info("Could not get position information")
+        return None
 
     def _send_command_long(self, command, param1=0, param2=0, param3=0, param4=0, param5=0, param6=0, param7=0):
         """
@@ -225,6 +261,50 @@ class DroneController:
         
         self.logger.info(f"No acknowledgment received for command {command}")
         return False
+    
+    def goto_position(self, lat, lon, alt):
+        """
+        Command the drone to go to a specific position.
+        
+        Args:
+            lat (float): Target latitude in degrees
+            lon (float): Target longitude in degrees
+            alt (float): Target altitude in meters (relative to home position)
+        
+        Returns:
+            bool: True if the command was accepted, False otherwise
+        """
+        if not self.connected:
+            self.logger.info("Not connected to a drone.")
+            return False
+        
+        print(f"Going to position: Lat={lat}, Lon={lon}, Alt={alt}m")
+        
+        # Make sure the drone is in GUIDED mode
+        self.set_guided()
+        
+        # Send the position target command
+        self.connection.mav.set_position_target_global_int_send(
+            0,                       # timestamp (not using it)
+            self.target_system,      # target system
+            self.target_component,   # target component
+            mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT, # frame
+            0b0000111111111000,      # type mask (only use position)
+            int(lat * 1e7),          # lat (degrees * 1e7)
+            int(lon * 1e7),          # lon (degrees * 1e7)
+            alt,                     # altitude (meters)
+            0, 0, 0,                 # velocity
+            0, 0, 0,                 # acceleration
+            0, 0                     # yaw, yaw rate
+        )
+        
+        return True
+
+    def close(self):
+        if self.connected and self.connection:
+            self.connection.close()
+            self.connected = False
+            self.logger.info("Connection closed.")
 
     
 
