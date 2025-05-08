@@ -125,6 +125,48 @@ class DroneController:
         self.logger.error(f"Failed to change mode to {mode.name}")
         return False
 
+    def get_current_mode(self, timeout=3):
+        """
+        Requests and returns the current flight mode of the drone.
+
+        Args:
+            timeout (int, optional): Time in seconds to wait for the HEARTBEAT message. Defaults to 3.
+
+        Returns:
+            str or None: The current flight mode as a string if received, otherwise None.
+        """
+        if not self.connected or self.connection is None:
+            self.logger.warning("Not connected to the drone. Cannot get current mode.")
+            return None
+
+        try:
+            self.logger.info(f"Requesting HEARTBEAT message from {self.target_system}:{self.target_component}")
+            self.connection.mav.command_long_send(
+                self.connection.source_system, self.connection.source_component,
+                self.target_system, self.target_component,
+                mavutil.mavlink.MAV_CMD_REQUEST_MESSAGE,
+                0,
+                mavutil.mavlink.MAVLINK_MSG_ID_HEARTBEAT,
+                0, 0, 0, 0, 0, 0
+            )
+
+            start_time = time.time()
+            while time.time() - start_time < timeout:
+                msg = self.connection.recv_match(type='HEARTBEAT', blocking=False)
+                if msg:
+                    if msg.get_srcSystem() == self.target_system and msg.get_srcComponent() == self.target_component:
+                        mode = mavutil.mode_string_v10(msg) or mavutil.mode_string_v20(msg)
+                        self.logger.info(f"Current Mode Received: {mode}")
+                        return mode
+                time.sleep(0.1)
+
+            self.logger.warning(f"Timeout occurred while waiting for HEARTBEAT message.")
+            return None
+
+        except Exception as e:
+            self.logger.error(f"Error getting current mode: {e}")
+            return None
+
     def set_guided(self):
         return self.set_mode(Mode.GUIDED)
     
@@ -181,15 +223,14 @@ class DroneController:
             0, 0, 0, 0, 0, 0, altitude
         )
 
-    def land(self):
-        """Command the drone to land."""
+    def land(self): 
         self.logger.info("Landing...")
-        return self.set_mode("LAND")
+        return self.set_mode(Mode.LAND)
     
     def return_to_launch(self):
         """Command the drone to return to the launch position."""
         self.logger.info("Returning to launch position...")
-        return self.set_mode("RTL")
+        return self.set_mode(Mode.RTL)
 
     def get_position(self):
         """
@@ -234,11 +275,13 @@ class DroneController:
         
         Returns:
             bool: True if the command was acknowledged, False otherwise
-        """
+        """ 
         if not self.connected:
             self.logger.info("Not connected to a drone.")
             return False
         
+        self.logger.info(f"Sending command : {command} ... {param1}")
+
         self.connection.mav.command_long_send(
             self.target_system,
             self.target_component,
@@ -299,6 +342,11 @@ class DroneController:
         )
         
         return True
+
+    def get_location(self):
+        # Retrieve current location
+        msg = self.connection.recv_match(type='GLOBAL_POSITION_INT', blocking=True)
+        return msg
 
     def close(self):
         if self.connected and self.connection:
