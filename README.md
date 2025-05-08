@@ -1,24 +1,35 @@
-# onedr 
-onedr is a Python library for drone control using MAVLINK. This library heavily depends on pymavlink for communication. 🎮
+# onedr
 
-### Requirements
+**onedr** is a lightweight Python library for controlling drones via MAVLink, built on top of [pymavlink](https://github.com/ArduPilot/pymavlink). 🎮
 
-```bash   
+> **Note:** This library is a focused wrapper designed specifically for **GUIDED mode** control of ArduPilot-based drones through a companion computer. It does **not** expose the full functionality of `pymavlink`.
+
+---
+
+## ✨ Features
+
+- Simple Python interface for MAVLink drone control
+- Supports GUIDED mode operations like takeoff, navigation, and landing
+- Works with ArduPilot firmware through a companion computer
+
+---
+
+## 🛠 Installation
+
+Before installing `onedr`, make sure you have Python 3.7 or higher installed.
+
+```bash
 pip install pymavlink
-```
-
-### Installation
-
-Download from github and setup 
-
-```bash   
-pip install -e .
+# Then clone and install onedr
+git clone https://github.com/yourusername/onedr.git
+cd onedr
+pip install .
 ```
 
 
-### Usage
+## 🚀 Getting Started
 
-Example Usage
+Example usage:
 
 Connecting to the vehicle (currently supports Ardupilot autopilot)
 
@@ -40,4 +51,23 @@ Arm & Take off
     mydrone.take_off()
     
 ```
+
+
+## ⚠️ Limitations
+
+- Only meant for GUIDED mode operations
+- Requires MAVLink-compatible flight controller. (Currently only supports Ardupilot)
+  
+---
+
+
+## 🧪 Testing
+
+If you're testing without a real drone, consider using SITL environments with ArduPilot to simulate behavior.
+
+---
+
+
+
+
     
